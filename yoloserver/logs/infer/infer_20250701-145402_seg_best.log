@@ -1,0 +1,7 @@
+2025-07-01 14:54:02,595 - INFO - YOLO Default : =========================日志记录器初始化开始=========================
+2025-07-01 14:54:02,595 - INFO - YOLO Default : 当前日志记录器的根目录: D:\学习\实习\yoloserver\logs
+2025-07-01 14:54:02,595 - INFO - YOLO Default : 当前日志记录器的名称: YOLO Default
+2025-07-01 14:54:02,595 - INFO - YOLO Default : 当前日志记录器的类型: infer
+2025-07-01 14:54:02,595 - INFO - YOLO Default : 单前日志记录器的级别: INFO
+2025-07-01 14:54:02,595 - INFO - YOLO Default : =========================日志记录器初始化成功=========================
+2025-07-01 14:54:02,599 - ERROR - YOLO Default : 模型文件 'C:\Users\Matri\Desktop\BTD\yoloserver\models\checkpoints\seg_best.pt' 不存在

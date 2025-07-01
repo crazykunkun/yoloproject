@@ -1,0 +1,6 @@
+test_images: D:\学习\实习\yoloserver\data\test\images
+test_labels: D:\学习\实习\yoloserver\data\test\labels
+train_images: D:\学习\实习\yoloserver\data\train\images
+train_labels: D:\学习\实习\yoloserver\data\train\labels
+val_images: D:\学习\实习\yoloserver\data\val\images
+val_labels: D:\学习\实习\yoloserver\data\val\labels

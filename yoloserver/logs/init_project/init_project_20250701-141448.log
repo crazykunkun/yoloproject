@@ -1,0 +1,46 @@
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : =========================日志记录器初始化开始=========================
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : 当前日志记录器的根目录: D:\学习\实习\yoloserver\logs
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : 当前日志记录器的名称: Project Initialization Logger
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : 当前日志记录器的类型: init_project
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : 单前日志记录器的级别: INFO
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : =========================日志记录器初始化成功=========================
+2025-07-01 14:14:48,125 - INFO - Project Initialization Logger : ==========================项目初始化开始===========================
+2025-07-01 14:14:48,126 - INFO - Project Initialization Logger : 当前项目的根目录: D:\学习\实习\yoloserver
+2025-07-01 14:14:48,126 - INFO - Project Initialization Logger : =========================开始创建核心的目录==========================
+2025-07-01 14:14:48,126 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\configs
+2025-07-01 14:14:48,126 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data
+2025-07-01 14:14:48,126 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\runs
+2025-07-01 14:14:48,127 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\models
+2025-07-01 14:14:48,127 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\models\checkpoints
+2025-07-01 14:14:48,127 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\models\pretrained
+2025-07-01 14:14:48,127 - INFO - Project Initialization Logger : 目录已存在: D:\学习\实习\yoloserver\logs
+2025-07-01 14:14:48,127 - INFO - Project Initialization Logger : 目录已存在: D:\学习\实习\yoloserver\scripts
+2025-07-01 14:14:48,128 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data\train\images
+2025-07-01 14:14:48,128 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data\train\labels
+2025-07-01 14:14:48,129 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data\val\images
+2025-07-01 14:14:48,129 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data\val\labels
+2025-07-01 14:14:48,129 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data\test\images
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : 成功创建目录: D:\学习\实习\yoloserver\data\test\labels
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : ====================项目核心目录已创建，创建了12个新目录=====================
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : ========================开始检查原始数据集目录=========================
+2025-07-01 14:14:48,130 - WARNING - Project Initialization Logger : 原始图像文件目录不存在: D:\学习\实习\yoloserver\data\raw\images
+2025-07-01 14:14:48,130 - WARNING - Project Initialization Logger : 原始标注文件目录不存在: D:\学习\实习\yoloserver\data\raw\original_annotations
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : =========================项目初始化结果汇总==========================
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : 成功创建了12个目录
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\configs
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\runs
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\models
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\models\checkpoints
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\models\pretrained
+2025-07-01 14:14:48,130 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data\train\images
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data\train\labels
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data\val\images
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data\val\labels
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data\test\images
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\data\test\labels
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : 以下2个目录已存在，无需创建
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\logs
+2025-07-01 14:14:48,132 - INFO - Project Initialization Logger : - D:\学习\实习\yoloserver\scripts
+2025-07-01 14:14:48,133 - INFO - Project Initialization Logger : 数据路径已写入: D:\学习\实习\yoloserver\configs\data.yaml
+2025-07-01 14:14:48,133 - INFO - Project Initialization Logger : 新能测试：'初始化项目' 执行耗时: 7.558 毫秒
