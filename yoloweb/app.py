@@ -6,6 +6,7 @@ from PIL import Image
 import numpy as np
 from datetime import datetime
 import requests
+import json
 
 app = Flask(__name__)
 
@@ -24,6 +25,21 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['DETECT_FOLDER'] = DETECT_FOLDER
 app.config['MODELS_FOLDER'] = MODELS_FOLDER
 
+HISTORY_FILE = 'yoloweb/static/history/history.json'
+os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
+
+def save_history_record(record):
+    # 读取历史
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+            history = json.load(f)
+    else:
+        history = []
+    # 追加新记录
+    history.append(record)
+    # 保存
+    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+        json.dump(history, f, ensure_ascii=False, indent=2)
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_detect():
@@ -69,6 +85,15 @@ def upload_detect():
                 else:
                     detections.append("No objects detected.")
 
+                record = {
+                    "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "image_file": img_filename,
+                    "detect_file": img_filename,  # 检测结果图片和原图同名
+                    "model_file": model_filename,
+                    "detections": detections
+                }
+                save_history_record(record)
+
                 return render_template(
                     'index.html',
                     prediction="Detection Complete",
@@ -85,6 +110,14 @@ def upload_detect():
 
     return render_template('index.html', prediction=None)
 
+@app.route('/history')
+def history():
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+            history = json.load(f)
+    else:
+        history = []
+    return render_template('history.html', history=history)
 
 if __name__ == '__main__':
     app.run(debug=True)

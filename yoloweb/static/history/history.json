@@ -1,0 +1,11 @@
+[
+  {
+    "time": "2025-07-01 16:52:18",
+    "image_file": "20250701165208_20250701112956_G_4_jpg.rf.003b525a8ad0715df867bc4214c7bf1c.jpg",
+    "detect_file": "20250701165208_20250701112956_G_4_jpg.rf.003b525a8ad0715df867bc4214c7bf1c.jpg",
+    "model_file": "20250701165208_best.pt",
+    "detections": [
+      "glioma_tumor: 94.23%"
+    ]
+  }
+]
