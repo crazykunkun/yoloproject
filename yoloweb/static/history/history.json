@@ -7,5 +7,55 @@
     "detections": [
       "glioma_tumor: 94.23%"
     ]
+  },
+  {
+    "time": "2025-07-01 16:57:57",
+    "image_file": "20250701165749_20250701162834_20250701110320_G_87_jpg.rf.77e39b18a1c4692a9764869c94388d09.jpg",
+    "detect_file": "20250701165749_20250701162834_20250701110320_G_87_jpg.rf.77e39b18a1c4692a9764869c94388d09.jpg",
+    "model_file": "20250701165749_best.pt",
+    "detections": [
+      "glioma_tumor: 93.05%"
+    ],
+    "tumor_types": [
+      "glioma_tumor"
+    ]
+  },
+  {
+    "time": "2025-07-02 09:17:21",
+    "image_file": "20250702091709_20250701113602_M_51_jpg.rf.7c9b556b299f0b8b3680d7e8a4c1efe9.jpg",
+    "detect_file": "20250702091709_20250701113602_M_51_jpg.rf.7c9b556b299f0b8b3680d7e8a4c1efe9.jpg",
+    "model_file": "20250702091709_20250701163310_best.pt",
+    "detections": [
+      "meningioma_tumor: 95.08%"
+    ],
+    "tumor_types": [
+      "meningioma_tumor"
+    ]
+  },
+  {
+    "time": "2025-07-02 10:00:25",
+    "image_file": "20250702100015_20250701112152_G_2_jpg.rf.cf96efbe22ab7370e389cd97e2d31f80.jpg",
+    "detect_file": "20250702100015_20250701112152_G_2_jpg.rf.cf96efbe22ab7370e389cd97e2d31f80.jpg",
+    "model_file": "20250702100015_best.pt",
+    "detections": [
+      "glioma_tumor: 95.59%"
+    ],
+    "tumor_types": [
+      "glioma_tumor"
+    ],
+    "ai_comment": "AI点评获取失败: string indices must be integers, not 'str'"
+  },
+  {
+    "time": "2025-07-02 10:03:59",
+    "image_file": "20250702100350_20250701112152_G_2_jpg.rf.cf96efbe22ab7370e389cd97e2d31f80.jpg",
+    "detect_file": "20250702100350_20250701112152_G_2_jpg.rf.cf96efbe22ab7370e389cd97e2d31f80.jpg",
+    "model_file": "20250702100350_best.pt",
+    "detections": [
+      "glioma_tumor: 95.59%"
+    ],
+    "tumor_types": [
+      "glioma_tumor"
+    ],
+    "ai_comment": "AI点评获取失败: string indices must be integers, not 'str'"
   }
 ]
