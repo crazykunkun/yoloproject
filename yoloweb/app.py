@@ -10,6 +10,16 @@ import json
 import pymysql
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+import io
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage, HRFlowable
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.lib.units import mm
 
 
 API_KEY = "sk-nnmesdasavgfaksjicfuuwcoqugdrgcgsgiktvdhowelsymq"
@@ -302,6 +312,106 @@ def dashboard():
         week_counts=week_counts,
         ip_records=ip_records
     )
+
+# 注册中文字体（假设simhei.ttf在static目录下）
+pdfmetrics.registerFont(TTFont('simhei', os.path.join('yoloweb', 'static', 'simhei.ttf')))
+
+@app.route('/export_pdf', methods=['POST'])
+@login_required
+def export_pdf():
+    data = request.get_json()
+    detections = data.get('detections', [])
+    ai_comment = data.get('ai_comment', '')
+    image_path = data.get('image_path', '')
+    username = session.get('username', '')
+    detect_time = data.get('detect_time', '')
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, leftMargin=32, rightMargin=32, topMargin=32, bottomMargin=28)
+    styles = getSampleStyleSheet()
+    
+    # 修改：使用唯一的样式名称，避免与默认样式冲突
+    styles.add(ParagraphStyle(name='ReportTitle', fontName='simhei', fontSize=24, alignment=1, spaceAfter=8, leading=30))
+    styles.add(ParagraphStyle(name='ReportSubTitle', fontName='simhei', fontSize=14, alignment=1, textColor=colors.HexColor('#4f46e5'), spaceAfter=12))
+    styles.add(ParagraphStyle(name='ReportInfo', fontName='simhei', fontSize=11, textColor=colors.HexColor('#333'), leading=18))
+    styles.add(ParagraphStyle(name='ReportSectionTitle', fontName='simhei', fontSize=13, textColor=colors.HexColor('#3056d3'), spaceBefore=10, spaceAfter=6))
+    styles.add(ParagraphStyle(name='ReportAIBox', fontName='simhei', fontSize=12, textColor=colors.HexColor('#222'), backColor=colors.HexColor('#fffbe6'), borderPadding=(8,8,8,8), leading=18, borderRadius=8, spaceBefore=10, spaceAfter=10))
+    styles.add(ParagraphStyle(name='ReportFooter', fontName='simhei', fontSize=9, alignment=1, textColor=colors.HexColor('#888'), spaceBefore=16))
+
+    elements = []
+    # 标题
+    elements.append(Paragraph('检测报告', styles['ReportTitle']))
+    elements.append(Paragraph('YOLO智能识别系统', styles['ReportSubTitle']))
+    elements.append(Spacer(1, 6))
+    # 分割线
+    elements.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor('#bfcfff'), spaceBefore=2, spaceAfter=8))
+    # 信息区
+    info_data = [
+        [Paragraph(f'<b>检测用户：</b>{username}', styles['ReportInfo']), Paragraph(f'<b>检测时间：</b>{detect_time}', styles['ReportInfo'])]
+    ]
+    info_table = Table(info_data, colWidths=[90*mm, 70*mm], hAlign='LEFT')
+    info_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f6f8fa')),
+        ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#e0e7ef')),
+        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e0e7ef')),
+        ('LEFTPADDING', (0,0), (-1,-1), 8),
+        ('RIGHTPADDING', (0,0), (-1,-1), 8),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+    ]))
+    elements.append(info_table)
+    elements.append(Spacer(1, 12))
+    # 图片区
+    if image_path:
+        img_abs = os.path.join('yoloweb', 'static', image_path.replace('detections/', 'detections\\'))
+        if os.path.exists(img_abs):
+            elements.append(Paragraph('检测图片', styles['ReportSectionTitle']))
+            img = RLImage(img_abs, width=60*mm, height=60*mm)
+            img.hAlign = 'CENTER'
+            elements.append(img)
+            elements.append(Spacer(1, 8))
+    # 检测结果区
+    elements.append(Paragraph('识别结果', styles['ReportSectionTitle']))
+    if detections:
+        table_data = [[Paragraph('<b>类别</b>', styles['ReportInfo']), Paragraph('<b>置信度</b>', styles['ReportInfo'])]]
+        for det in detections:
+            if ':' in det:
+                cls, conf = det.split(':',1)
+            else:
+                cls, conf = det, ''
+            table_data.append([cls.strip(), conf.strip()])
+        result_table = Table(table_data, colWidths=[60*mm, 40*mm], hAlign='LEFT')
+        result_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e0e7ff')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.HexColor('#3056d3')),
+            ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+            ('FONTNAME', (0,0), (-1,-1), 'simhei'),
+            ('FONTSIZE', (0,0), (-1,-1), 11),
+            ('ROWBACKGROUNDS', (1,0), (-1,-1), [colors.white, colors.HexColor('#f6f8fa')]),
+            ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#bfcfff')),
+            ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e0e7ef')),
+            ('TOPPADDING', (0,0), (-1,-1), 4),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ]))
+        elements.append(result_table)
+    else:
+        elements.append(Paragraph('无检测结果', styles['ReportInfo']))
+    elements.append(Spacer(1, 10))
+    # AI点评区
+    if ai_comment:
+        elements.append(Paragraph('AI点评', styles['ReportSectionTitle']))
+        elements.append(Paragraph(f'🧠 {ai_comment}', styles['ReportAIBox']))
+    # 页脚
+    elements.append(Spacer(1, 16))
+    elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor('#ddd'), spaceBefore=2, spaceAfter=2))
+    elements.append(Paragraph('本报告由YOLO智能识别系统自动生成', styles['ReportFooter']))
+    doc.build(elements)
+    buffer.seek(0)
+    return (buffer.getvalue(), 200, {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': 'attachment; filename="detect_report.pdf"'
+    })
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -253,6 +253,10 @@
                 {% endif %}
             </div>
         </div>
+        <!-- 导出PDF按钮，仅在有检测结果时显示 -->
+        <button id="export-pdf-btn" class="btn btn-primary mt-3" style="width:100%;font-weight:600;">
+            <i class="fas fa-file-pdf me-2"></i>导出当前检测报告为PDF
+        </button>
         {% endif %}
     </div>
 </div>
@@ -306,6 +310,51 @@
             document.getElementById('image').files = files;
             const event = new Event('change');
             document.getElementById('image').dispatchEvent(event);
+        }
+    });
+    // 导出PDF功能
+    document.addEventListener('DOMContentLoaded', function() {
+        const exportBtn = document.getElementById('export-pdf-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                // 收集检测数据
+                const detections = [];
+                document.querySelectorAll('.detection-item').forEach(function(item) {
+                    detections.push(item.textContent.trim());
+                });
+                const aiComment = document.querySelector('.ai-comment-box') ? document.querySelector('.ai-comment-box').textContent.replace('AI点评：','').trim() : '';
+                const imageElem = document.getElementById('preview-img');
+                let imagePath = "";
+                if (imageElem && imageElem.src && imageElem.src.includes('/static/detections/')) {
+                    // 提取相对路径
+                    const idx = imageElem.src.indexOf('/static/detections/');
+                    imagePath = imageElem.src.substring(idx + 8); // 去掉/static/
+                }
+                // 检测时间（用页面时间或当前时间）
+                const now = new Date();
+                const detectTime = now.getFullYear() + '-' + (now.getMonth()+1).toString().padStart(2,'0') + '-' + now.getDate().toString().padStart(2,'0') + ' ' + now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+                fetch('/export_pdf', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        detections: detections,
+                        ai_comment: aiComment,
+                        image_path: imagePath,
+                        detect_time: detectTime
+                    })
+                })
+                .then(resp => resp.blob())
+                .then(blob => {
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '检测报告.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                });
+            });
         }
     });
 </script>
