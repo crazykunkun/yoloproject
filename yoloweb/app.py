@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, render_template, jsonify, session, redirect
 import sys
 from ultralytics import YOLO
 from PIL import Image
@@ -7,6 +7,9 @@ import numpy as np
 from datetime import datetime
 import requests
 import json
+import pymysql
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
 
 API_KEY = "sk-nnmesdasavgfaksjicfuuwcoqugdrgcgsgiktvdhowelsymq"
@@ -30,18 +33,40 @@ app.config['MODELS_FOLDER'] = MODELS_FOLDER
 HISTORY_FILE = 'yoloweb/static/history/history.json'
 os.makedirs(os.path.dirname(HISTORY_FILE), exist_ok=True)
 
-def save_history_record(record):
-    # 读取历史
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-            history = json.load(f)
-    else:
-        history = []
-    # 追加新记录
-    history.append(record)
-    # 保存
-    with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
-        json.dump(history, f, ensure_ascii=False, indent=2)
+# MySQL配置
+DB_CONFIG = {
+    'host': 'localhost',
+    'user': 'root',
+    'password': '123456',
+    'database': 'shixi',
+    'charset': 'utf8mb4'
+}
+
+def get_db_conn():
+    return pymysql.connect(**DB_CONFIG)
+
+def save_history_record(record, user_id, ip=None):
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "INSERT INTO history (user_id, time, image_file, detect_file, model_file, detections, tumor_types, ai_comment, ip) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+                (
+                    user_id,
+                    record["time"],
+                    record["image_file"],
+                    record["detect_file"],
+                    record["model_file"],
+                    json.dumps(record["detections"], ensure_ascii=False),
+                    json.dumps(record["tumor_types"], ensure_ascii=False),
+                    record["ai_comment"],
+                    ip
+                )
+            )
+            conn.commit()
+    finally:
+        conn.close()
 
 def get_ai_comment(detections, token):
     url = "https://api.siliconflow.cn/v1/chat/completions"
@@ -70,7 +95,64 @@ def get_ai_comment(detections, token):
     except Exception as e:
         return f"AI点评获取失败: {e}"
 
+app.secret_key = '123456'
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect('/login')
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username'].strip()
+        password = request.form['password']
+        if not username or not password:
+            return render_template('register.html', error='用户名和密码不能为空')
+        conn = get_db_conn()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT id FROM users WHERE username=%s', (username,))
+                if cursor.fetchone():
+                    return render_template('register.html', error='用户名已存在')
+                password_hash = generate_password_hash(password)
+                cursor.execute('INSERT INTO users (username, password_hash) VALUES (%s, %s)', (username, password_hash))
+                conn.commit()
+            return redirect('/login')
+        finally:
+            conn.close()
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username'].strip()
+        password = request.form['password']
+        conn = get_db_conn()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute('SELECT id, password_hash FROM users WHERE username=%s', (username,))
+                user = cursor.fetchone()
+                if user and check_password_hash(user[1], password):
+                    session['user_id'] = user[0]
+                    session['username'] = username
+                    return redirect('/')
+                else:
+                    return render_template('login.html', error='用户名或密码错误')
+        finally:
+            conn.close()
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/login')
+
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def upload_detect():
     if request.method == 'POST':
         # 获取客户端上传的图片
@@ -128,7 +210,7 @@ def upload_detect():
                     "tumor_types": list(tumor_types) if tumor_types else ["无"],
                     "ai_comment": ai_comment  # 新增点评
                 }
-                save_history_record(record)
+                save_history_record(record, session['user_id'], request.remote_addr)
 
                 return render_template(
                     'index.html',
@@ -148,12 +230,29 @@ def upload_detect():
     return render_template('index.html', prediction=None)
 
 @app.route('/history')
+@login_required
 def history():
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-            history = json.load(f)
-    else:
-        history = []
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT time, image_file, detect_file, model_file, detections, tumor_types, ai_comment "
+                "FROM history WHERE user_id=%s ORDER BY time DESC", (session['user_id'],)
+            )
+            rows = cursor.fetchall()
+            history = []
+            for row in rows:
+                history.append({
+                    "time": row[0].strftime("%Y-%m-%d %H:%M:%S"),
+                    "image_file": row[1],
+                    "detect_file": row[2],
+                    "model_file": row[3],
+                    "detections": json.loads(row[4]),
+                    "tumor_types": json.loads(row[5]),
+                    "ai_comment": row[6]
+                })
+    finally:
+        conn.close()
     return render_template('history.html', history=history)
 
 @app.route('/refresh_ai_comment', methods=['POST'])
@@ -163,6 +262,46 @@ def refresh_ai_comment():
     # 重新获取AI点评
     ai_comment = get_ai_comment(detections, API_KEY)
     return jsonify({"ai_comment": ai_comment})
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cursor:
+            # 总调用次数
+            cursor.execute("SELECT COUNT(*) FROM history")
+            total_calls = cursor.fetchone()[0]
+            # 总用户数
+            cursor.execute("SELECT COUNT(*) FROM users")
+            total_users = cursor.fetchone()[0]
+            # 处理总量（图片数）
+            cursor.execute("SELECT COUNT(*) FROM history")
+            total_processed = cursor.fetchone()[0]
+            # 近一周每天调用次数
+            cursor.execute("""
+                SELECT DATE(time), COUNT(*) FROM history
+                WHERE time >= DATE_SUB(CURDATE(), INTERVAL 6 DAY)
+                GROUP BY DATE(time)
+                ORDER BY DATE(time)
+            """)
+            week_data = cursor.fetchall()
+            week_labels = [str(row[0]) for row in week_data]
+            week_counts = [row[1] for row in week_data]
+            # 最近10个IP
+            cursor.execute("SELECT ip, time FROM history WHERE ip IS NOT NULL ORDER BY time DESC LIMIT 10")
+            ip_records = cursor.fetchall()
+    finally:
+        conn.close()
+    return render_template(
+        'dashboard.html',
+        total_calls=total_calls,
+        total_users=total_users,
+        total_processed=total_processed,
+        week_labels=week_labels,
+        week_counts=week_counts,
+        ip_records=ip_records
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)
